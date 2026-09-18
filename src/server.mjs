@@ -335,7 +335,7 @@ const server = createServer(async (req, res) => {
     if (pathname === "/health") return sendJson(res, 200, { ok: true });
 
     if (req.method === "POST" && pathname === "/api/stripe/webhook") {
-      return handleStripeWebhook(req, res);
+      return await handleStripeWebhook(req, res);
     }
 
     if (req.method === "POST" && pathname.startsWith("/api/")) {
@@ -430,8 +430,13 @@ const server = createServer(async (req, res) => {
   } catch (error) {
     const status = Number(error.status || 500);
     if (status >= 500) {
-      console.error(error);
-      void trackException(error, status);
+      // Never log backend error messages, request bodies, tokens or Stripe data.
+      console.error(JSON.stringify({ event: "request_failed", status }));
+      void track("$exception", "scopeledger-server", {
+        "$exception_list": [{ type: "ServerError", value: "ScopeLedger request failed" }],
+        "$exception_fingerprint": ["scopeledger-server-error"],
+        status
+      });
     }
     sendJson(res, status, { error: status >= 500 ? "Internal server error" : error.message });
   }
