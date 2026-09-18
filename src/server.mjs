@@ -14,14 +14,14 @@ import {
 } from "./lib.mjs";
 
 const PORT = Number(process.env.PORT || 3000);
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const BACKEND_URL = process.env.BACKEND_URL || "";
+const BACKEND_GATEWAY_SECRET = process.env.BACKEND_GATEWAY_SECRET || "";
 const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${PORT}`;
 const secureCookie = APP_URL.startsWith("https://");
 const root = fileURLToPath(new URL("../public/", import.meta.url));
 
-if (!SUPABASE_URL || !SERVICE_KEY) {
-  console.error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
+if (!BACKEND_URL || !BACKEND_GATEWAY_SECRET) {
+  console.error("BACKEND_URL and BACKEND_GATEWAY_SECRET are required");
   process.exit(1);
 }
 
@@ -64,22 +64,21 @@ function sendHtml(res, status, html) {
 }
 
 async function rpc(action, payload, actorHash) {
-  const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/rpc/sl_api`, {
+  const response = await fetch(BACKEND_URL, {
     method: "POST",
     headers: {
-      apikey: SERVICE_KEY,
-      authorization: `Bearer ${SERVICE_KEY}`,
-      "content-type": "application/json"
+      "content-type": "application/json",
+      "x-scopeledger-gateway": BACKEND_GATEWAY_SECRET
     },
     body: JSON.stringify({ action, payload, actor_hash: actorHash }),
     signal: AbortSignal.timeout(10_000)
   });
   const text = await response.text();
   let data;
-  try { data = text ? JSON.parse(text) : null; } catch { data = { message: text }; }
+  try { data = text ? JSON.parse(text) : null; } catch { data = { error: "Backend returned invalid JSON" }; }
   if (!response.ok) {
-    const message = data?.message || "Database request failed";
-    throw Object.assign(new Error(message), { status: /Unauthorized|Not found/.test(message) ? 401 : 400 });
+    const message = data?.error || "Backend request failed";
+    throw Object.assign(new Error(message), { status: response.status === 401 ? 401 : response.status >= 500 ? 503 : 400 });
   }
   return data;
 }
