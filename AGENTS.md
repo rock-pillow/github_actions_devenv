@@ -16,6 +16,17 @@ Build small, deployable web products quickly, validate demand, instrument usage,
 - Register GSC/GA4 only after a public domain exists.
 - Keep infrastructure minimal; do not add services without a concrete product requirement.
 
+## Model routing
+- Astra remains the primary planner, implementer, and tool orchestrator.
+- Gemini is an optional external model provider, not a hard dependency.
+- Default Gemini production model: `gemini-3.8-flash` unless a current product requirement justifies another stable model.
+- Prefer Gemini for very large-context analysis, multimodal inputs, independent second-pass review, or high-throughput transformations when it materially improves cost/latency/quality.
+- Prefer the direct Google Gen AI SDK (`@google/genai`) for new Gemini integrations.
+- Keep `GEMINI_API_KEY` server-side. Never expose it through `NEXT_PUBLIC_*`, client bundles, logs, analytics, issues, or source control.
+- Use `AI_PROVIDER=auto` to allow product code to choose a provider by task; provider choice must remain explicit in code and observable in logs/metrics.
+- Do not silently send confidential user content to an external model provider. Product-specific data-handling rules override automatic routing.
+- If Gemini is unavailable, fail over only when the task semantics remain valid; otherwise surface the failure.
+
 ## Delivery gate
 Before declaring a build complete:
 1. Install dependencies reproducibly.
