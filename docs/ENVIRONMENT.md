@@ -20,6 +20,12 @@ The Astra Control Plane is the durable registry for shared infrastructure and pr
 - PostHog: product behavior and experimentation.
 - Sentry: application errors and traces.
 
+## Domain
+- Shared root domain: ustg.tech.
+- Registrar / DNS management: get.tech.
+- Prefer product-specific subdomains rather than binding the apex to a single product.
+- DNS changes remain an external/manual step unless a compatible DNS-management connector is added.
+
 ## SEO
 - GSC/GA4 configuration starts after a public domain is live.
 
