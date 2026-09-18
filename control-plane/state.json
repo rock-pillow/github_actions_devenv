@@ -6,7 +6,7 @@
   "handoff_mode": "shared-mcp-control-plane",
   "repository": "https://github.com/rock-pillow/github_actions_devenv/tree/scopeledger",
   "branch": "scopeledger",
-  "latest_verified_commit": "f0241fb0550a9c77398c293f99c3c8e6e4749acb",
+  "latest_verified_commit": "81c0de9dc8fc526f668df71f7595023db4e65907",
   "planned_domain": "scopeledger.ustg.tech",
   "dns_provider": "get.tech",
   "hosting": {
@@ -15,7 +15,7 @@
     "service": "scopeledger",
     "service_id": "srv-dama0srm8hqs73d2clc0",
     "url": "https://scopeledger.onrender.com",
-    "deployed_commit": "f0241fb0550a9c77398c293f99c3c8e6e4749acb",
+    "deployed_commit": "81c0de9dc8fc526f668df71f7595023db4e65907",
     "plan": "free",
     "region": "singapore",
     "auto_deploy": false
@@ -39,13 +39,29 @@
     "webhook": "we_1UGrk6C05qJ95APik1nqPTMO",
     "checkout_binding_e2e": true,
     "entitlement_rpc_e2e": true,
-    "signed_webhook_delivery_e2e": false,
+    "signed_webhook_delivery_e2e": true,
     "synthetic_signed_webhook_e2e": true,
     "provider_webhook_manual_test": {
-      "status": "awaiting_manual_checkout",
-      "qa_order_id": "6c3f7168-e797-4ce8-8763-4440a8613bd3",
-      "qa_workspace_id": "f7d6707a-ef68-42ad-a16a-802566375c22",
-      "cleanup_after_verification": true
+      "status": "hosted_checkout_completed",
+      "verified_at": "2026-09-18T03:13:05Z",
+      "order_id": "b19ccc31-90c1-4d84-a278-704dde79f7a6",
+      "checkout_status": "complete",
+      "payment_status": "paid",
+      "subscription_id": "sub_1UGsEWC05qJ95APirr9osc8x",
+      "customer_id": "cus_VHR6sq931NuZrE",
+      "subscription_status_after_payment": "active",
+      "paid_until_after_payment": "2026-10-18T03:13:05.955891Z",
+      "provider_event_ids": [
+        "evt_1UGsEXC05qJ95APikyaAfbN4",
+        "evt_1UGsEXC05qJ95APixfwZnGi5",
+        "evt_1UGsIFC05qJ95APiqEXaEujs"
+      ],
+      "subscription_cleanup": "canceled; cancellation webhook updated DB to cancelled",
+      "db_cleanup": "this run workspace/project/change/history/order rows removed; idempotency event IDs retained",
+      "stripe_customer_cleanup": "test customer retained with canceled subscription",
+      "previous_chat_qa": "prepared order 6c3f7168-e797-4ce8-8763-4440a8613bd3 and workspace f7d6707a-ef68-42ad-a16a-802566375c22 left untouched",
+      "delivery_evidence": "Stripe Checkout API paid/complete, signature-protected DB receipt, entitlement and cancellation state",
+      "dashboard_delivery_http_status": "not inspected: connector operation unavailable; dashboard browser requires sign-in"
     }
   },
   "observability": {
@@ -59,7 +75,9 @@
     "session_replay": false,
     "anonymize_ips": true,
     "sentry": false,
-    "sentry_status": "connected previously but no Sentry execution tools are surfaced in the current toolset"
+    "sentry_status": "No callable Sentry tools or SENTRY_AUTH_TOKEN/SENTRY_DSN in current execution environment; existing PostHog error insight/alert reused",
+    "posthog_error_ingestion_verified": true,
+    "posthog_error_probe_count": 1
   },
   "email": {
     "resend": false,
@@ -78,13 +96,21 @@
     "policy": "primary-model-orchestrates; deterministic-first; free-external-ai-by-task-and-data-sensitivity"
   },
   "last_checkpoint": {
-    "source": "chat",
-    "summary": "ScopeLedger preview is live on Render commit 7bd322b. Public E2E passes the full revision/approval/invoicing flow and Sandbox Checkout order binding. Synthetic Stripe-signed webhook handling and entitlement fulfillment were verified end-to-end to DB. PostHog server-side privacy-minimal analytics is live and event ingestion was observed. Sanitized 500-level $exception tracking plus a 1-hour exception insight and hourly alert are configured. E2E DB rows were removed.",
-    "next_action": "Complete the prepared Stripe Sandbox hosted Checkout for QA order 6c3f7168-e797-4ce8-8763-4440a8613bd3. Then verify Stripe-generated checkout.session.completed reached the Render webhook, confirm entitlement in sl_orders/sl_workspaces, cancel the sandbox subscription, delete the QA workspace/order/events, and only then consider DNS.",
+    "source": "work",
+    "summary": "Real Stripe Sandbox hosted Checkout succeeded. Provider webhook receipt, active entitlement and later cancellation verified in DB. Fixed undefined error tracking and unawaited webhook errors; seven tests and CI passed. Runtime 81c0de9 deployed on existing Render service and public revision/reapproval/invoicing E2E passed after deployment. PostHog product and sanitized exception ingestion observed. This run's QA DB rows cleaned; test subscription canceled. README, Notion and Launch Tracker updated.",
+    "next_action": "Optional account-owner verification of Stripe Dashboard delivery-attempt HTTP status; endpoint enabled and actual DB webhook receipt already verified. Keep Preview/Sandbox and DNS unchanged. Retain existing PostHog error monitoring; Sentry deferred until callable existing access is available.",
     "blockers": [
-      "scopeledger.ustg.tech DNS remains unchanged at get.tech.",
-      "One manual Stripe Sandbox Hosted Checkout is required because Stripe does not allow Checkout Sessions to be completed programmatically through the API.",
-      "The previously connected Sentry integration is not surfaced as an executable tool in the current toolset; PostHog Error Tracking + alert is active as the current error-monitoring path."
-    ]
+      "Stripe Dashboard per-attempt HTTP delivery status not accessible through current connector; browser sign-in required.",
+      "Sentry callable tools/runtime credentials unavailable. PostHog errors are verified.",
+      "DNS remains unchanged; no DNS request or Live payment authorization is needed for continued Preview testing."
+    ],
+    "validation": {
+      "ci_url": "https://github.com/rock-pillow/github_actions_devenv/actions/runs/35302647989",
+      "unit_tests": 7,
+      "public_e2e": true,
+      "public_e2e_after_deploy": true,
+      "syntax_checks": true,
+      "production_build": true
+    }
   }
 }
