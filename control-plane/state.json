@@ -6,7 +6,7 @@
   "handoff_mode": "shared-mcp-control-plane",
   "repository": "https://github.com/rock-pillow/github_actions_devenv/tree/scopeledger",
   "branch": "scopeledger",
-  "latest_verified_commit": "7bd322bdb99aeffdc02bce26de8cbd8d5bea86c4",
+  "latest_verified_commit": "f0241fb0550a9c77398c293f99c3c8e6e4749acb",
   "planned_domain": "scopeledger.ustg.tech",
   "dns_provider": "get.tech",
   "hosting": {
@@ -15,7 +15,7 @@
     "service": "scopeledger",
     "service_id": "srv-dama0srm8hqs73d2clc0",
     "url": "https://scopeledger.onrender.com",
-    "deployed_commit": "7bd322bdb99aeffdc02bce26de8cbd8d5bea86c4",
+    "deployed_commit": "f0241fb0550a9c77398c293f99c3c8e6e4749acb",
     "plan": "free",
     "region": "singapore",
     "auto_deploy": false
@@ -40,7 +40,13 @@
     "checkout_binding_e2e": true,
     "entitlement_rpc_e2e": true,
     "signed_webhook_delivery_e2e": false,
-    "synthetic_signed_webhook_e2e": true
+    "synthetic_signed_webhook_e2e": true,
+    "provider_webhook_manual_test": {
+      "status": "awaiting_manual_checkout",
+      "qa_order_id": "6c3f7168-e797-4ce8-8763-4440a8613bd3",
+      "qa_workspace_id": "f7d6707a-ef68-42ad-a16a-802566375c22",
+      "cleanup_after_verification": true
+    }
   },
   "observability": {
     "posthog": true,
@@ -74,11 +80,11 @@
   "last_checkpoint": {
     "source": "chat",
     "summary": "ScopeLedger preview is live on Render commit 7bd322b. Public E2E passes the full revision/approval/invoicing flow and Sandbox Checkout order binding. Synthetic Stripe-signed webhook handling and entitlement fulfillment were verified end-to-end to DB. PostHog server-side privacy-minimal analytics is live and event ingestion was observed. Sanitized 500-level $exception tracking plus a 1-hour exception insight and hourly alert are configured. E2E DB rows were removed.",
-    "next_action": "Complete one real Stripe Sandbox hosted Checkout manually to observe Stripe's provider-generated checkout.session.completed delivery. After that, verify webhook/entitlement in DB, then decide whether to switch scopeledger.ustg.tech DNS. Sentry can be added later if its connector tools become available.",
+    "next_action": "Complete the prepared Stripe Sandbox hosted Checkout for QA order 6c3f7168-e797-4ce8-8763-4440a8613bd3. Then verify Stripe-generated checkout.session.completed reached the Render webhook, confirm entitlement in sl_orders/sl_workspaces, cancel the sandbox subscription, delete the QA workspace/order/events, and only then consider DNS.",
     "blockers": [
       "scopeledger.ustg.tech DNS remains unchanged at get.tech.",
-      "Stripe Hosted Checkout cannot be completed programmatically via API; one manual Sandbox Checkout is required to observe a provider-generated signed webhook.",
-      "The previously connected Sentry integration is not surfaced as an executable tool in the current toolset."
+      "One manual Stripe Sandbox Hosted Checkout is required because Stripe does not allow Checkout Sessions to be completed programmatically through the API.",
+      "The previously connected Sentry integration is not surfaced as an executable tool in the current toolset; PostHog Error Tracking + alert is active as the current error-monitoring path."
     ]
   }
 }
