@@ -429,7 +429,10 @@ const server = createServer(async (req, res) => {
     sendJson(res, 404, { error: "Not found" });
   } catch (error) {
     const status = Number(error.status || 500);
-    if (status >= 500) console.error(error);
+    if (status >= 500) {
+      console.error(error);
+      void trackException(error, status);
+    }
     sendJson(res, status, { error: status >= 500 ? "Internal server error" : error.message });
   }
 });
