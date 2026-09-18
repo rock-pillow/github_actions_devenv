@@ -25,6 +25,21 @@ async function json(path, { method = "GET", cookie, body } = {}) {
 
 const suffix = Date.now().toString(36);
 
+const webhookPayload = '{"id":"evt_scopeledger_webhook_smoke","object":"event","type":"customer.subscription.deleted","livemode":false,"data":{"object":{"id":"sub_scopeledger_missing","object":"subscription"}}}';
+const webhookResponse = await fetch(base + "/api/stripe/webhook", {
+  method: "POST",
+  headers: {
+    "content-type": "application/json",
+    "stripe-signature": "t=1789699675,v1=c9ab75bf4bf6abc4e4abc348460d0ab970d733889ebeae244512ee0616d037e5"
+  },
+  body: webhookPayload,
+  signal: AbortSignal.timeout(20_000),
+});
+const webhookData = await webhookResponse.json().catch(() => ({}));
+if (!webhookResponse.ok || webhookData?.received !== true || webhookData?.outcome !== "missing") {
+  throw new Error(`webhook smoke failed: ${webhookResponse.status} ${JSON.stringify(webhookData)}`);
+}
+
 const health = await json("/health");
 if (health.data?.ok !== true) throw new Error("health check failed");
 
