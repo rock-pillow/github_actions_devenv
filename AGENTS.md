@@ -51,6 +51,13 @@ Do not choose these merely because they are easy to build, SEO-friendly, or chea
 
 Prefer products where the core value is a concrete recurring workflow, operational pain, decision support, domain-specific automation, or a monetizable niche process. File import/export may exist as a feature, but must not be the product thesis.
 
+## Work ↔ Chat shared state
+- At the start of meaningful work, read `control-plane/state.json` and the current Notion product row/page.
+- Treat Git/provider state as authoritative if it is newer than the checkpoint.
+- After each material milestone, update code/provider state first, Notion second, and `control-plane/state.json` last.
+- Follow `docs/WORK_CHAT_BRIDGE.md`.
+- This shared MCP-backed state is the default bridge between ChatGPT Work and ordinary Chat.
+
 ## Handoff discipline
 - Persist durable checkpoints after material milestones so normal Chat can resume without relying on Work conversation context.
 - When Work quota is low, prioritize committing verified code and recording current stage, blockers, provider state, and next action.
