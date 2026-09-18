@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project": "ScopeLedger",
   "stage": "preview",
-  "active_agent": "work-astra",
+  "active_agent": "chat-gpt56-sol",
   "handoff_mode": "shared-mcp-control-plane",
   "repository": "https://github.com/rock-pillow/github_actions_devenv/tree/scopeledger",
   "branch": "scopeledger",
@@ -96,21 +96,14 @@
     "policy": "primary-model-orchestrates; deterministic-first; free-external-ai-by-task-and-data-sensitivity"
   },
   "last_checkpoint": {
-    "source": "work",
-    "summary": "Real Stripe Sandbox hosted Checkout succeeded. Provider webhook receipt, active entitlement and later cancellation verified in DB. Fixed undefined error tracking and unawaited webhook errors; seven tests and CI passed. Runtime 81c0de9 deployed on existing Render service and public revision/reapproval/invoicing E2E passed after deployment. PostHog product and sanitized exception ingestion observed. This run's QA DB rows cleaned; test subscription canceled. README, Notion and Launch Tracker updated.",
-    "next_action": "Optional account-owner verification of Stripe Dashboard delivery-attempt HTTP status; endpoint enabled and actual DB webhook receipt already verified. Keep Preview/Sandbox and DNS unchanged. Retain existing PostHog error monitoring; Sentry deferred until callable existing access is available.",
+    "source": "chat",
+    "summary": "Recovered Astra checkpoint after real Stripe Sandbox Checkout verification. Runtime 81c0de9 remains the correct deployed build; HEAD ae34cb6 only adds README/control-plane documentation. Created Monetization Experiment 01 in Notion and shifted the product from feature-building to customer-validation.",
+    "next_action": "Prepare the first qualified prospect set and outreach assets for Japanese freelance web designers/small agencies that explicitly charge for additional revisions. Do not send outreach until user authorizes it. Track activation to change-request-shared and willingness-to-pay at JPY 1,980/month.",
     "blockers": [
-      "Stripe Dashboard per-attempt HTTP delivery status not accessible through current connector; browser sign-in required.",
-      "Sentry callable tools/runtime credentials unavailable. PostHog errors are verified.",
-      "DNS remains unchanged; no DNS request or Live payment authorization is needed for continued Preview testing."
+      "Outreach sending is not yet authorized; research and drafting only.",
+      "Stripe remains Sandbox-only and DNS remains unchanged.",
+      "Sentry tool surface remains unavailable; PostHog errors are active."
     ],
-    "validation": {
-      "ci_url": "https://github.com/rock-pillow/github_actions_devenv/actions/runs/35302647989",
-      "unit_tests": 7,
-      "public_e2e": true,
-      "public_e2e_after_deploy": true,
-      "syntax_checks": true,
-      "production_build": true
-    }
+    "monetization_experiment_page": "https://app.notion.com/p/3df06480d5548101b1d8c5170d96872d?pvs=204"
   }
 }
