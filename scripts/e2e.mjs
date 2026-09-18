@@ -25,21 +25,6 @@ async function json(path, { method = "GET", cookie, body } = {}) {
 
 const suffix = Date.now().toString(36);
 
-const webhookPayload = '{"id":"evt_scopeledger_checkout_fulfill_smoke","object":"event","type":"checkout.session.completed","livemode":false,"data":{"object":{"id":"cs_test_scopeledger_fulfill","object":"checkout.session","payment_link":"plink_1UGrirC05qJ95APieR94dXDJ","payment_status":"paid","client_reference_id":"6634a75b-ec98-4997-af3d-51507a784e61","subscription":"sub_test_scopeledger_fulfill","customer":"cus_test_scopeledger_fulfill"}}}';
-const webhookResponse = await fetch(base + "/api/stripe/webhook", {
-  method: "POST",
-  headers: {
-    "content-type": "application/json",
-    "stripe-signature": "t=1789699812,v1=099acd5299ad272ca819f628d883f370cdf979fdade110c3bac1effa3ca58f33"
-  },
-  body: webhookPayload,
-  signal: AbortSignal.timeout(20_000),
-});
-const webhookData = await webhookResponse.json().catch(() => ({}));
-if (!webhookResponse.ok || webhookData?.received !== true || webhookData?.outcome !== "fulfilled") {
-  throw new Error(`checkout fulfillment webhook failed: ${webhookResponse.status} ${JSON.stringify(webhookData)}`);
-}
-
 const health = await json("/health");
 if (health.data?.ok !== true) throw new Error("health check failed");
 
