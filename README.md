@@ -18,10 +18,12 @@ This branch contains product-agnostic operating rules and CI defaults. Product-s
 - Google Drive + Notion: control plane and durable records
 - Firecrawl: market/competitor research
 - GSC Wizard: SEO/Search Console/GA4 after launch
+- Gemini API: optional external AI provider through `@google/genai`
 
 ## Starting a product
 1. Create a new repository or branch from this baseline.
 2. Choose the smallest viable stack.
 3. Copy .env.example to the local environment and populate only required variables.
 4. Replace or extend CI if the project is not Node/Next.js.
-5. Update AGENTS.md only when product-specific constraints require it.
+5. Apply docs/AI_ROUTING.md if the product or development workflow uses Gemini.
+6. Update AGENTS.md only when product-specific constraints require it.
