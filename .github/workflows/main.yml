@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - astra-starter
+      - scopeledger
       - main
   pull_request:
 
@@ -33,52 +34,28 @@ jobs:
         if: steps.detect.outputs.node == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
         if: steps.detect.outputs.node == 'true'
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Lint
         if: steps.detect.outputs.node == 'true'
-        shell: bash
-        run: |
-          if npm run | grep -qE '^  lint$'; then
-            npm run lint
-          else
-            echo "No lint script configured; skipping."
-          fi
+        run: npm run lint
 
       - name: Typecheck
         if: steps.detect.outputs.node == 'true'
-        shell: bash
-        run: |
-          if npm run | grep -qE '^  typecheck$'; then
-            npm run typecheck
-          else
-            echo "No typecheck script configured; skipping."
-          fi
+        run: npm run typecheck
 
       - name: Test
         if: steps.detect.outputs.node == 'true'
-        shell: bash
-        run: |
-          if npm run | grep -qE '^  test$'; then
-            npm test -- --runInBand || npm test
-          else
-            echo "No test script configured; skipping."
-          fi
+        run: npm test
 
       - name: Production build
         if: steps.detect.outputs.node == 'true'
-        shell: bash
-        run: |
-          if npm run | grep -qE '^  build$'; then
-            npm run build
-          else
-            echo "No build script configured; skipping."
-          fi
+        run: npm run build
 
       - name: Secret-file sanity check
         shell: bash
