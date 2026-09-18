@@ -51,6 +51,12 @@ Do not choose these merely because they are easy to build, SEO-friendly, or chea
 
 Prefer products where the core value is a concrete recurring workflow, operational pain, decision support, domain-specific automation, or a monetizable niche process. File import/export may exist as a feature, but must not be the product thesis.
 
+## Handoff discipline
+- Persist durable checkpoints after material milestones so normal Chat can resume without relying on Work conversation context.
+- When Work quota is low, prioritize committing verified code and recording current stage, blockers, provider state, and next action.
+- Before creating any cloud resource, search connected sources to avoid duplicates.
+- Follow `docs/HANDOFF.md` for the full resume/checkpoint protocol.
+
 ## Delivery gate
 Before declaring a build complete:
 1. Install dependencies reproducibly.
