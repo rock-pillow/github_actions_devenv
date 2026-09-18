@@ -136,6 +136,7 @@ async function track(event, distinctId, properties = {}) {
         event,
         properties: {
           "$process_person_profile": false,
+          "$ip": null,
           environment: "preview",
           ...properties
         }
@@ -174,6 +175,12 @@ function invoicePeriodEnd(invoice) {
     .map(line => Number(line?.period?.end))
     .filter(Number.isFinite);
   return ends.length ? new Date(Math.max(...ends) * 1000).toISOString() : null;
+}
+
+function invoiceSubscriptionMetadata(invoice) {
+  return invoice?.parent?.subscription_details?.metadata
+    || invoice?.subscription_details?.metadata
+    || {};
 }
 
 async function handleStripeWebhook(req, res) {
@@ -225,22 +232,41 @@ async function handleStripeWebhook(req, res) {
       void track("sandbox subscription fulfilled", `order:${hashToken(orderId)}`, { source: "webhook" });
     }
   } else if (event.type === "invoice.paid") {
+    const metadata = invoiceSubscriptionMetadata(object);
+    if (metadata?.app !== "scopeledger") {
+      return sendJson(res, 200, { received: true, outcome });
+    }
+
     const subscriptionId = invoiceSubscriptionId(object);
-    if (!subscriptionId) return sendJson(res, 200, { received: true, outcome });
+    if (!subscriptionId) return sendJson(res, 200, { received: true, outcome: "missing_subscription_id" });
+
     outcome = await backend({
       operation: "renew_subscription",
       event_id: String(event.id || ""),
       subscription_id: subscriptionId,
       period_end: invoicePeriodEnd(object)
     });
+
+    if (outcome === "missing") {
+      return sendJson(res, 503, { received: false, outcome: "retry_after_checkout_mapping" });
+    }
   } else if (event.type === "customer.subscription.deleted") {
+    if (object?.metadata?.app !== "scopeledger") {
+      return sendJson(res, 200, { received: true, outcome });
+    }
+
     const subscriptionId = scalarId(object);
-    if (!subscriptionId) return sendJson(res, 200, { received: true, outcome });
+    if (!subscriptionId) return sendJson(res, 200, { received: true, outcome: "missing_subscription_id" });
+
     outcome = await backend({
       operation: "cancel_subscription",
       event_id: String(event.id || ""),
       subscription_id: subscriptionId
     });
+
+    if (outcome === "missing") {
+      return sendJson(res, 503, { received: false, outcome: "retry_after_checkout_mapping" });
+    }
   }
 
   return sendJson(res, 200, { received: true, outcome });
@@ -366,6 +392,9 @@ const server = createServer(async (req, res) => {
       const result = await rpc(action, payload, actor);
       if (action === "create_project") void track("project created", `workspace:${actor}`);
       if (action === "create_change") void track("change request created", `workspace:${actor}`);
+      if (action === "revise") void track("change request revised", `workspace:${actor}`);
+      if (action === "invoice") void track("change marked invoiced", `workspace:${actor}`);
+      if (action === "archive_project") void track("project archived", `workspace:${actor}`);
       return sendJson(res, 200, result);
     }
 
