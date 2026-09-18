@@ -40,9 +40,10 @@
     "runtime": "none",
     "providers_allowed": [
       "gemini-free",
+      "groq-free",
       "cloudflare-workers-ai-free"
     ],
-    "policy": "use-external-ai-only-when-it-materially-improves-the-task"
+    "policy": "primary-model-orchestrates; deterministic-first; free-external-ai-by-task-and-data-sensitivity"
   },
   "last_checkpoint": {
     "source": "chat",
