@@ -1,19 +1,24 @@
 {
   "schema_version": 1,
   "project": "ScopeLedger",
-  "stage": "build",
+  "stage": "preview",
   "active_agent": "chat-gpt56-sol",
   "handoff_mode": "shared-mcp-control-plane",
   "repository": "https://github.com/rock-pillow/github_actions_devenv/tree/scopeledger",
   "branch": "scopeledger",
-  "latest_verified_commit": "78ab938da600f8319773dfbc4ce781ad80d86d4e",
+  "latest_verified_commit": "158fbe1e61167167a7d9fa6419315b2b5bf7223a",
   "planned_domain": "scopeledger.ustg.tech",
   "dns_provider": "get.tech",
   "hosting": {
-    "provider": null,
+    "provider": "render",
     "render_workspace_policy": "single-existing-workspace-only",
-    "service": null,
-    "url": null
+    "service": "scopeledger",
+    "service_id": "srv-dama0srm8hqs73d2clc0",
+    "url": "https://scopeledger.onrender.com",
+    "deployed_commit": "44715e3afb6d84b83d162f9300ec2e7e1ce276a3",
+    "plan": "free",
+    "region": "singapore",
+    "auto_deploy": false
   },
   "supabase": {
     "project": "scopeledger",
@@ -51,10 +56,10 @@
   },
   "last_checkpoint": {
     "source": "chat",
-    "summary": "Recovered Astra state. Supabase scopeledger already existed. Audited schema/RPCs, locked DB/table/functions to service_role, created scopeledger product branch, and committed the first dependency-free Node 24 MVP vertical slice.",
-    "next_action": "Wait for Astra CI; fix failures if any, then configure a deployable server-side Supabase credential path and create the ScopeLedger Render service inside the existing workspace.",
+    "summary": "ScopeLedger core MVP is deployed to the existing Render workspace. Supabase Edge gateway v2 keeps admin credentials inside Supabase. GitHub CI passes and public preview E2E passed through workspace -> project -> change -> share -> client confirm -> invoice -> history. E2E data was removed.",
+    "next_action": "Harden preview (same-origin checks/security headers/legal pages), then add Stripe Sandbox upgrade flow and observability without changing DNS yet.",
     "blockers": [
-      "ScopeLedger server runtime still needs a secure Supabase server credential or equivalent backend bridge before deployment."
+      "scopeledger.ustg.tech DNS remains unchanged at get.tech; use Render preview URL until final readiness."
     ]
   }
 }
