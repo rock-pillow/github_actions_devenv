@@ -5,6 +5,7 @@ The Astra Control Plane is the durable registry for shared infrastructure and pr
 ## Hosting
 - Vercel Hobby: preview/development/non-commercial.
 - Render: general runtime and commercial-production candidate with appropriate compute.
+- Render constraint: use the existing single project/workspace only. Do not create additional Render projects/workspaces; keep any required services inside the existing context.
 
 ## Data
 - Supabase projects are created per product only when required.
