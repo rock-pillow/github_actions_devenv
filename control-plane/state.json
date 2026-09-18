@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "project": "ScopeLedger",
-  "stage": "research",
-  "active_agent": null,
+  "stage": "build",
+  "active_agent": "chat-gpt56-sol",
   "handoff_mode": "shared-mcp-control-plane",
-  "repository": null,
-  "branch": null,
-  "latest_verified_commit": null,
+  "repository": "https://github.com/rock-pillow/github_actions_devenv/tree/scopeledger",
+  "branch": "scopeledger",
+  "latest_verified_commit": "78ab938da600f8319773dfbc4ce781ad80d86d4e",
   "planned_domain": "scopeledger.ustg.tech",
   "dns_provider": "get.tech",
   "hosting": {
@@ -16,8 +16,12 @@
     "url": null
   },
   "supabase": {
-    "project": null,
-    "migration_state": null
+    "project": "scopeledger",
+    "project_id": "pusiejhxpnfnddvunmyg",
+    "migration_state": [
+      "20260918015605 initial_scopeledger",
+      "20260918021200 lock_down_scopeledger_server_only"
+    ]
   },
   "stripe": {
     "mode": "sandbox",
@@ -47,8 +51,10 @@
   },
   "last_checkpoint": {
     "source": "chat",
-    "summary": "ScopeLedger selected after excluding CSV/file-conversion businesses. Research complete enough to begin MVP design; no product repository or cloud resources created yet.",
-    "next_action": "Freeze minimal MVP flow/data model, then create the product repository from astra-starter rules.",
-    "blockers": []
+    "summary": "Recovered Astra state. Supabase scopeledger already existed. Audited schema/RPCs, locked DB/table/functions to service_role, created scopeledger product branch, and committed the first dependency-free Node 24 MVP vertical slice.",
+    "next_action": "Wait for Astra CI; fix failures if any, then configure a deployable server-side Supabase credential path and create the ScopeLedger Render service inside the existing workspace.",
+    "blockers": [
+      "ScopeLedger server runtime still needs a secure Supabase server credential or equivalent backend bridge before deployment."
+    ]
   }
 }
