@@ -1,1 +1,92 @@
-curl -sSf https://sshx.io/get | sh -s run
+name: Astra CI
+
+on:
+  push:
+    branches:
+      - astra-starter
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect Node project
+        id: detect
+        shell: bash
+        run: |
+          if [ -f package.json ]; then
+            echo "node=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "node=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        if: steps.detect.outputs.node == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.detect.outputs.node == 'true'
+        run: npm ci
+
+      - name: Lint
+        if: steps.detect.outputs.node == 'true'
+        shell: bash
+        run: |
+          if npm run | grep -qE '^  lint$'; then
+            npm run lint
+          else
+            echo "No lint script configured; skipping."
+          fi
+
+      - name: Typecheck
+        if: steps.detect.outputs.node == 'true'
+        shell: bash
+        run: |
+          if npm run | grep -qE '^  typecheck$'; then
+            npm run typecheck
+          else
+            echo "No typecheck script configured; skipping."
+          fi
+
+      - name: Test
+        if: steps.detect.outputs.node == 'true'
+        shell: bash
+        run: |
+          if npm run | grep -qE '^  test$'; then
+            npm test -- --runInBand || npm test
+          else
+            echo "No test script configured; skipping."
+          fi
+
+      - name: Production build
+        if: steps.detect.outputs.node == 'true'
+        shell: bash
+        run: |
+          if npm run | grep -qE '^  build$'; then
+            npm run build
+          else
+            echo "No build script configured; skipping."
+          fi
+
+      - name: Secret-file sanity check
+        shell: bash
+        run: |
+          forbidden="$(git ls-files | grep -E '(^|/)(\.env($|\.)|.*\.(pem|key|p12|pfx)$)' | grep -vE '(^|/)\.env\.example$' || true)"
+          if [ -n "$forbidden" ]; then
+            echo "Potential secret-bearing files are tracked:"
+            echo "$forbidden"
+            exit 1
+          fi
+          echo "No obvious secret-bearing files tracked."
