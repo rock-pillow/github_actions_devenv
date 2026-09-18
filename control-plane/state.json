@@ -6,7 +6,7 @@
   "handoff_mode": "shared-mcp-control-plane",
   "repository": "https://github.com/rock-pillow/github_actions_devenv/tree/scopeledger",
   "branch": "scopeledger",
-  "latest_verified_commit": "1b9daf01a2c3909b05ddefda2174b47ede85cf79",
+  "latest_verified_commit": "feeedc125dc3d2c7cf49dfd7a6147fe21a395e91",
   "planned_domain": "scopeledger.ustg.tech",
   "dns_provider": "get.tech",
   "hosting": {
@@ -15,7 +15,7 @@
     "service": "scopeledger",
     "service_id": "srv-dama0srm8hqs73d2clc0",
     "url": "https://scopeledger.onrender.com",
-    "deployed_commit": "daa8e5916070a0b92b3da5a9deae524ca97bc147",
+    "deployed_commit": "0d1b55c4ff9ff9ab4514a77ee1ff4e5001269cd5",
     "plan": "free",
     "region": "singapore",
     "auto_deploy": false
@@ -39,10 +39,15 @@
     "webhook": "we_1UGrk6C05qJ95APik1nqPTMO",
     "checkout_binding_e2e": true,
     "entitlement_rpc_e2e": true,
-    "signed_webhook_delivery_e2e": false
+    "signed_webhook_delivery_e2e": false,
+    "synthetic_signed_webhook_e2e": true
   },
   "observability": {
-    "posthog": false,
+    "posthog": true,
+    "posthog_project_id": 615350,
+    "posthog_mode": "server-side-minimal-events",
+    "session_replay": false,
+    "anonymize_ips": true,
     "sentry": false
   },
   "email": {
@@ -63,11 +68,11 @@
   },
   "last_checkpoint": {
     "source": "chat",
-    "summary": "ScopeLedger preview is live. Core workflow and Checkout order binding passed public E2E. Stripe Sandbox Product, JPY 1,980/month Price, Payment Link, and signed webhook endpoint exist. Subscription entitlement RPCs were exercised for initial fulfillment/idempotency/renewal; test rows were deleted. Actual Stripe-signed webhook delivery still requires one completed Sandbox Checkout.",
-    "next_action": "Add observability (PostHog/Sentry where connector/runtime setup is practical), then perform one completed Stripe Sandbox checkout to verify webhook delivery before DNS change.",
+    "summary": "ScopeLedger preview is live and public E2E passes through revision v2, approval, invoicing, and Sandbox Checkout order binding. Stripe synthetic signed webhook handling and entitlement fulfillment were verified end-to-end to DB, then test data was removed. PostHog project 615350 is configured for privacy-minimal server-side analytics with anonymized IPs and no session replay; live preview E2E events were observed in PostHog.",
+    "next_action": "Add Sentry if its connected tool surface is available; otherwise record connector limitation. Then complete one real Stripe Sandbox Checkout to observe a provider-generated signed webhook before any DNS change.",
     "blockers": [
       "scopeledger.ustg.tech DNS remains unchanged at get.tech.",
-      "Actual Stripe-signed webhook delivery has not yet been observed from a completed Sandbox Checkout."
+      "A provider-generated Stripe webhook has not yet been observed from an actually completed Sandbox Checkout."
     ]
   }
 }
