@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "project": "ScopeLedger",
+  "stage": "research",
+  "active_agent": null,
+  "handoff_mode": "shared-mcp-control-plane",
+  "repository": null,
+  "branch": null,
+  "latest_verified_commit": null,
+  "planned_domain": "scopeledger.ustg.tech",
+  "dns_provider": "get.tech",
+  "hosting": {
+    "provider": null,
+    "render_workspace_policy": "single-existing-workspace-only",
+    "service": null,
+    "url": null
+  },
+  "supabase": {
+    "project": null,
+    "migration_state": null
+  },
+  "stripe": {
+    "mode": "sandbox",
+    "product": null,
+    "price": null,
+    "webhook": null
+  },
+  "observability": {
+    "posthog": false,
+    "sentry": false
+  },
+  "email": {
+    "resend": false,
+    "domain": null
+  },
+  "seo": {
+    "gsc": false
+  },
+  "ai": {
+    "runtime": "none",
+    "providers_allowed": [
+      "gemini-free",
+      "cloudflare-workers-ai-free"
+    ],
+    "policy": "use-external-ai-only-when-it-materially-improves-the-task"
+  },
+  "last_checkpoint": {
+    "source": "chat",
+    "summary": "ScopeLedger selected after excluding CSV/file-conversion businesses. Research complete enough to begin MVP design; no product repository or cloud resources created yet.",
+    "next_action": "Freeze minimal MVP flow/data model, then create the product repository from astra-starter rules.",
+    "blockers": []
+  }
+}
