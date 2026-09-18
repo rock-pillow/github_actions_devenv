@@ -97,13 +97,26 @@
   },
   "last_checkpoint": {
     "source": "chat",
-    "summary": "Recovered Astra checkpoint after real Stripe Sandbox Checkout verification. Runtime 81c0de9 remains the correct deployed build; HEAD ae34cb6 only adds README/control-plane documentation. Created Monetization Experiment 01 in Notion and shifted the product from feature-building to customer-validation.",
-    "next_action": "Prepare the first qualified prospect set and outreach assets for Japanese freelance web designers/small agencies that explicitly charge for additional revisions. Do not send outreach until user authorizes it. Track activation to change-request-shared and willingness-to-pay at JPY 1,980/month.",
+    "summary": "Recovered ScopeLedger after Astra quota. Runtime 81c0de9 remains correct; later HEAD changes are documentation/control-plane only. Shifted work to customer validation. Created Notion Monetization Experiment 01, a Pilot Prospects database, five qualified public Lancers service examples, and Outreach Kit 01. No outreach was sent.",
+    "next_action": "Expand to ~20 qualified public prospects across Lancers/X/public business sites, resolve actual business/contact surfaces, then request user authorization before sending any individualized outreach. Primary activation remains change request shared; WTP target is JPY 1,980/month.",
     "blockers": [
-      "Outreach sending is not yet authorized; research and drafting only.",
-      "Stripe remains Sandbox-only and DNS remains unchanged.",
-      "Sentry tool surface remains unavailable; PostHog errors are active."
+      "Outreach sending is not authorized yet; research and drafting only.",
+      "Stripe Live remains OFF and DNS remains unchanged.",
+      "Sentry tool surface remains unavailable; PostHog product/error monitoring is active."
     ],
-    "monetization_experiment_page": "https://app.notion.com/p/3df06480d5548101b1d8c5170d96872d?pvs=204"
+    "monetization": {
+      "experiment_page": "https://app.notion.com/p/3df06480d5548101b1d8c5170d96872d?pvs=204",
+      "prospects_database": "https://app.notion.com/p/939a8361040d44e0b69bf1c25e5b7232",
+      "outreach_kit": "https://app.notion.com/p/3df06480d554814cbbc5f2069faa49ee?pvs=204",
+      "qualified_public_examples": 5,
+      "outreach_sent": 0,
+      "pilot_goal": {
+        "trial_users": 5,
+        "real_project_users": 3,
+        "review_link_senders": 2,
+        "wtp_confirmed_users": 1,
+        "target_wtp_jpy": 1980
+      }
+    }
   }
 }
