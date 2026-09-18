@@ -67,3 +67,22 @@ jobs:
             exit 1
           fi
           echo "No obvious secret-bearing files tracked."
+
+  preview-e2e:
+    needs: validate
+    if: github.ref == 'refs/heads/scopeledger' && contains(github.event.head_commit.message, '[e2e]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run preview E2E
+        env:
+          E2E_URL: https://scopeledger.onrender.com
+        run: node scripts/e2e.mjs
