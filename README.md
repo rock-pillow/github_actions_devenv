@@ -1,29 +1,54 @@
-# Astra Web Starter
+# ScopeLedger
 
-Reusable base branch for ChatGPT Work / Astra web-product projects.
+ScopeLedger is a focused change-request ledger for Japanese freelance web designers and small agencies working on fixed-fee projects.
 
-## Purpose
-This branch contains product-agnostic operating rules and CI defaults. Product-specific code, domains, database projects, payment products, analytics events, and email templates should be created only after a product is selected.
+It records the baseline scope, priced change requests, deadline impact, client decisions, immutable history, and approved-but-unbilled work.
 
-## Connected environment
-- GitHub: source control and Actions
-- Vercel Hobby: preview/non-commercial development
-- Render: runtime/deployment
-- Supabase: database/auth/storage when needed
-- Stripe: Sandbox only
-- Resend: transactional email
-- PostHog: analytics/experiments
-- Sentry: error monitoring
-- Figma: product design
-- Google Drive + Notion: control plane and durable records
-- Firecrawl: market/competitor research
-- GSC Wizard: SEO/Search Console/GA4 after launch
-- Gemini API: optional external AI provider through `@google/genai`
+## Current MVP
 
-## Starting a product
-1. Create a new repository or branch from this baseline.
-2. Choose the smallest viable stack.
-3. Copy .env.example to the local environment and populate only required variables.
-4. Replace or extend CI if the project is not Node/Next.js.
-5. Apply docs/AI_ROUTING.md if the product or development workflow uses Gemini.
-6. Update AGENTS.md only when product-specific constraints require it.
+- workspace creation without email signup;
+- one free active project;
+- project baseline + original budget;
+- priced/scheduled change requests;
+- client review URL with explicit approve / request-changes decision;
+- version-specific decision enforcement;
+- history ledger;
+- approved-but-unbilled total;
+- mark confirmed changes as invoiced;
+- server-only Supabase RPC access.
+
+## Architecture
+
+Browser -> Node 24 web service -> Supabase REST RPC -> PostgreSQL
+
+The browser never receives the Supabase service-role key and has no direct table/RPC access.
+
+## Local development
+
+Required environment variables:
+
+```
+SUPABASE_URL=https://<project>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...
+APP_URL=http://localhost:3000
+```
+
+Then:
+
+```
+npm test
+npm run lint
+npm run build
+npm start
+```
+
+## Deployment constraints
+
+- Reuse the existing Render workspace; do not create another workspace/project.
+- Stripe remains Sandbox-only.
+- Planned domain: `scopeledger.ustg.tech`; DNS is managed externally at get.tech and remains unchanged until deployment is ready.
+- Vercel Hobby is not a commercial production target.
+
+## Product constraints
+
+This is not a generic project manager, invoicing suite, legal automation tool, or file/CSV conversion service.

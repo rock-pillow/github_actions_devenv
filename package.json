@@ -1,0 +1,14 @@
+{
+  "name": "scopeledger",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test",
+    "lint": "node --check src/server.mjs && node --check src/lib.mjs && node --check public/app.js",
+    "typecheck": "node --check src/server.mjs && node --check src/lib.mjs",
+    "build": "node scripts/build-check.mjs"
+  }
+}
