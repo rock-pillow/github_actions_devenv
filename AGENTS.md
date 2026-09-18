@@ -36,6 +36,21 @@ Build small, deployable web products quickly, validate demand, instrument usage,
 - Create CSV only when CSV itself is an explicit product requirement, an import/export feature under test, or the user explicitly asks for a CSV.
 - Never let spreadsheet/CSV generation become the primary deliverable when the task is to build a working web product.
 
+
+## Business selection exclusions
+Do not select a generic file-format or data-conversion utility as the product.
+
+Unless there is a genuinely differentiated vertical workflow with clear proprietary value, exclude:
+- CSV viewers, editors, cleaners, converters, validators, mergers, splitters, deduplicators, formatters, analyzers, and CSV-to-X utilities;
+- generic Excel/CSV/JSON/XML/YAML converters or transformers;
+- generic PDF/image/text conversion, merge, split, compress, OCR, or formatter utilities;
+- generic "upload a file, transform it, download a file" products;
+- generic developer utilities whose primary value is format conversion rather than solving a business workflow.
+
+Do not choose these merely because they are easy to build, SEO-friendly, or cheap to host.
+
+Prefer products where the core value is a concrete recurring workflow, operational pain, decision support, domain-specific automation, or a monetizable niche process. File import/export may exist as a feature, but must not be the product thesis.
+
 ## Delivery gate
 Before declaring a build complete:
 1. Install dependencies reproducibly.
