@@ -6,7 +6,7 @@
   "handoff_mode": "shared-mcp-control-plane",
   "repository": "https://github.com/rock-pillow/github_actions_devenv/tree/scopeledger",
   "branch": "scopeledger",
-  "latest_verified_commit": "feeedc125dc3d2c7cf49dfd7a6147fe21a395e91",
+  "latest_verified_commit": "7bd322bdb99aeffdc02bce26de8cbd8d5bea86c4",
   "planned_domain": "scopeledger.ustg.tech",
   "dns_provider": "get.tech",
   "hosting": {
@@ -15,7 +15,7 @@
     "service": "scopeledger",
     "service_id": "srv-dama0srm8hqs73d2clc0",
     "url": "https://scopeledger.onrender.com",
-    "deployed_commit": "0d1b55c4ff9ff9ab4514a77ee1ff4e5001269cd5",
+    "deployed_commit": "7bd322bdb99aeffdc02bce26de8cbd8d5bea86c4",
     "plan": "free",
     "region": "singapore",
     "auto_deploy": false
@@ -46,9 +46,14 @@
     "posthog": true,
     "posthog_project_id": 615350,
     "posthog_mode": "server-side-minimal-events",
+    "posthog_event_ingestion_verified": true,
+    "posthog_error_tracking": true,
+    "posthog_error_insight_id": 11994702,
+    "posthog_error_alert_id": "01a0b277-cd1c-0000-3889-cfe6c88c40b3",
     "session_replay": false,
     "anonymize_ips": true,
-    "sentry": false
+    "sentry": false,
+    "sentry_status": "connected previously but no Sentry execution tools are surfaced in the current toolset"
   },
   "email": {
     "resend": false,
@@ -68,11 +73,12 @@
   },
   "last_checkpoint": {
     "source": "chat",
-    "summary": "Handing back to Astra. ScopeLedger Preview is live. Core workflow including revise/re-share/re-approval/invoice passes public E2E. Stripe Sandbox Product/Price/Payment Link/Webhook exist; Checkout order binding, synthetic signed webhook delivery, and entitlement fulfillment to DB have been verified. PostHog server-side minimal analytics is active with anonymized IPs and no session replay. Latest branch commit is cdcb342d093fc551aa7e235f6ceac571cb0997eb; live Render deploy is 0d1b55c4ff9ff9ab4514a77ee1ff4e5001269cd5.",
-    "next_action": "Astra should re-read current branch/provider state, check whether Sentry is usable through the connected connector, then complete one actual Stripe Sandbox Checkout so a Stripe-generated signed webhook is observed. If successful, update checkpoints and prepare DNS instructions for scopeledger.ustg.tech without changing get.tech DNS automatically.",
+    "summary": "ScopeLedger preview is live on Render commit 7bd322b. Public E2E passes the full revision/approval/invoicing flow and Sandbox Checkout order binding. Synthetic Stripe-signed webhook handling and entitlement fulfillment were verified end-to-end to DB. PostHog server-side privacy-minimal analytics is live and event ingestion was observed. Sanitized 500-level $exception tracking plus a 1-hour exception insight and hourly alert are configured. E2E DB rows were removed.",
+    "next_action": "Complete one real Stripe Sandbox hosted Checkout manually to observe Stripe's provider-generated checkout.session.completed delivery. After that, verify webhook/entitlement in DB, then decide whether to switch scopeledger.ustg.tech DNS. Sentry can be added later if its connector tools become available.",
     "blockers": [
       "scopeledger.ustg.tech DNS remains unchanged at get.tech.",
-      "A provider-generated Stripe webhook has not yet been observed from an actually completed Sandbox Checkout."
+      "Stripe Hosted Checkout cannot be completed programmatically via API; one manual Sandbox Checkout is required to observe a provider-generated signed webhook.",
+      "The previously connected Sentry integration is not surfaced as an executable tool in the current toolset."
     ]
   }
 }
