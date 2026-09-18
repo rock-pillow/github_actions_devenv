@@ -23,3 +23,7 @@ services:
         value: "plink_1UGrirC05qJ95APieR94dXDJ"
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
+      - key: POSTHOG_PROJECT_KEY
+        sync: false
+      - key: POSTHOG_HOST
+        value: "https://us.i.posthog.com"

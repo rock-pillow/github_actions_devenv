@@ -20,6 +20,8 @@ const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || `http:
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 const STRIPE_PAYMENT_LINK_URL = process.env.STRIPE_PAYMENT_LINK_URL || "";
 const STRIPE_PAYMENT_LINK_ID = process.env.STRIPE_PAYMENT_LINK_ID || "";
+const POSTHOG_PROJECT_KEY = process.env.POSTHOG_PROJECT_KEY || "";
+const POSTHOG_HOST = (process.env.POSTHOG_HOST || "https://us.i.posthog.com").replace(/\/$/, "");
 const secureCookie = APP_URL.startsWith("https://");
 const root = fileURLToPath(new URL("../public/", import.meta.url));
 const appOrigin = new URL(APP_URL).origin;
@@ -122,6 +124,29 @@ async function rpc(action, payload, actorHash) {
   return backend({ operation: "api", action, payload, actor_hash: actorHash });
 }
 
+async function track(event, distinctId, properties = {}) {
+  if (!POSTHOG_PROJECT_KEY || !distinctId) return;
+  try {
+    await fetch(`${POSTHOG_HOST}/i/v0/e`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        api_key: POSTHOG_PROJECT_KEY,
+        distinct_id: String(distinctId),
+        event,
+        properties: {
+          "$process_person_profile": false,
+          environment: "preview",
+          ...properties
+        }
+      }),
+      signal: AbortSignal.timeout(1500)
+    });
+  } catch {
+    // Analytics must never affect the product path.
+  }
+}
+
 function workspaceHash(req) {
   const token = parseCookies(req.headers.cookie).sl_workspace;
   return token ? hashToken(token) : null;
@@ -196,6 +221,9 @@ async function handleStripeWebhook(req, res) {
       customer_id: scalarId(object.customer),
       period_end: null
     });
+    if (outcome === "fulfilled") {
+      void track("sandbox subscription fulfilled", `order:${hashToken(orderId)}`, { source: "webhook" });
+    }
   } else if (event.type === "invoice.paid") {
     const subscriptionId = invoiceSubscriptionId(object);
     if (!subscriptionId) return sendJson(res, 200, { received: true, outcome });
@@ -292,7 +320,9 @@ const server = createServer(async (req, res) => {
     if (req.method === "POST" && pathname === "/api/workspaces") {
       const body = await readJson(req);
       const raw = newToken();
-      const result = await rpc("create_workspace", { name: String(body.name || "") }, hashToken(raw));
+      const actorHash = hashToken(raw);
+      const result = await rpc("create_workspace", { name: String(body.name || "") }, actorHash);
+      void track("workspace created", `workspace:${actorHash}`);
       return sendJson(res, 201, result, { "set-cookie": cookie("sl_workspace", raw, { secure: secureCookie }) });
     }
 
@@ -314,6 +344,7 @@ const server = createServer(async (req, res) => {
       const order = await rpc("order", {}, actor);
       const checkoutUrl = new URL(STRIPE_PAYMENT_LINK_URL);
       checkoutUrl.searchParams.set("client_reference_id", String(order.id));
+      void track("sandbox checkout started", `workspace:${actor}`);
       return sendJson(res, 200, { url: checkoutUrl.toString(), order_id: order.id, mode: "sandbox" });
     }
 
@@ -328,10 +359,13 @@ const server = createServer(async (req, res) => {
       if (action === "share") {
         const raw = newToken();
         const result = await rpc("share", { ...payload, review_hash: hashToken(raw) }, actor);
+        void track("change request shared", `workspace:${actor}`);
         return sendJson(res, 200, { ...result, review_url: `${APP_URL.replace(/\/$/, "")}/review/${raw}` });
       }
 
       const result = await rpc(action, payload, actor);
+      if (action === "create_project") void track("project created", `workspace:${actor}`);
+      if (action === "create_change") void track("change request created", `workspace:${actor}`);
       return sendJson(res, 200, result);
     }
 
@@ -346,12 +380,15 @@ const server = createServer(async (req, res) => {
       const body = await readJson(req);
       const token = String(body.token || "");
       if (!token || token.length > 256) return sendJson(res, 400, { error: "Invalid token" });
+      const reviewHash = hashToken(token);
+      const decision = String(body.decision || "");
       const result = await rpc("decision", {
         version: Number(body.version),
-        decision: String(body.decision || ""),
+        decision,
         name: String(body.name || ""),
         comment: String(body.comment || "")
-      }, hashToken(token));
+      }, reviewHash);
+      void track("client decision submitted", `review:${reviewHash}`, { decision });
       return sendJson(res, 200, result);
     }
 
