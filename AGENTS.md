@@ -28,6 +28,14 @@ Build small, deployable web products quickly, validate demand, instrument usage,
 - Do not silently send confidential user content to an external model provider. Product-specific data-handling rules override automatic routing.
 - If Gemini is unavailable, fail over only when the task semantics remain valid; otherwise surface the failure.
 
+## Artifact discipline
+- Do not create CSV files as planning artifacts, research outputs, status reports, backlogs, product specifications, or substitutes for implementation.
+- Do not export structured findings to CSV merely because tabular data exists.
+- Use Notion or Markdown for research/specifications/decisions.
+- Update the existing Google Sheets Launch Tracker directly when tabular launch/status data must be recorded.
+- Create CSV only when CSV itself is an explicit product requirement, an import/export feature under test, or the user explicitly asks for a CSV.
+- Never let spreadsheet/CSV generation become the primary deliverable when the task is to build a working web product.
+
 ## Delivery gate
 Before declaring a build complete:
 1. Install dependencies reproducibly.
