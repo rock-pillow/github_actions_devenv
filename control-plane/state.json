@@ -98,7 +98,7 @@
   "last_checkpoint": {
     "source": "chat",
     "summary": "Recovered ScopeLedger after Astra quota. Runtime 81c0de9 remains correct; later HEAD changes are documentation/control-plane only. Shifted work to customer validation. Created Notion Monetization Experiment 01, a Pilot Prospects database, five qualified public Lancers service examples, and Outreach Kit 01. No outreach was sent.",
-    "next_action": "Expand to ~20 qualified public prospects across Lancers/X/public business sites, resolve actual business/contact surfaces, then request user authorization before sending any individualized outreach. Primary activation remains change request shared; WTP target is JPY 1,980/month.",
+    "next_action": "Expand to about 20 qualified public prospects across public business channels, resolve actual public contact surfaces, then request user authorization before sending individualized outreach. Primary activation remains change request shared; WTP target is JPY 1,980/month.",
     "blockers": [
       "Outreach sending is not authorized yet; research and drafting only.",
       "Stripe Live remains OFF and DNS remains unchanged.",
