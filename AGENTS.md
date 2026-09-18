@@ -8,6 +8,7 @@ Build small, deployable web products quickly, validate demand, instrument usage,
 - Stripe is sandbox-only until the user explicitly authorizes live mode after account verification.
 - Vercel Hobby is for preview, development, and non-commercial testing only.
 - Render is the primary runtime candidate for commercial production.
+- Keep Render to a single project/workspace deployment context for Astra work. Do not create additional Render projects/workspaces; reuse the existing context and add only the minimum services required by the selected product.
 - Use Supabase only when persistent state, authentication, storage, or server-side data access is required.
 - All user-owned Supabase data must use RLS.
 - Database schema changes must be represented as migrations.
