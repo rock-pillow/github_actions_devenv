@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project": "ScopeLedger",
   "stage": "preview",
-  "active_agent": "chat-gpt56-sol",
+  "active_agent": "work-astra",
   "handoff_mode": "shared-mcp-control-plane",
   "repository": "https://github.com/rock-pillow/github_actions_devenv/tree/scopeledger",
   "branch": "scopeledger",
@@ -68,8 +68,8 @@
   },
   "last_checkpoint": {
     "source": "chat",
-    "summary": "ScopeLedger preview is live and public E2E passes through revision v2, approval, invoicing, and Sandbox Checkout order binding. Stripe synthetic signed webhook handling and entitlement fulfillment were verified end-to-end to DB, then test data was removed. PostHog project 615350 is configured for privacy-minimal server-side analytics with anonymized IPs and no session replay; live preview E2E events were observed in PostHog.",
-    "next_action": "Add Sentry if its connected tool surface is available; otherwise record connector limitation. Then complete one real Stripe Sandbox Checkout to observe a provider-generated signed webhook before any DNS change.",
+    "summary": "Handing back to Astra. ScopeLedger Preview is live. Core workflow including revise/re-share/re-approval/invoice passes public E2E. Stripe Sandbox Product/Price/Payment Link/Webhook exist; Checkout order binding, synthetic signed webhook delivery, and entitlement fulfillment to DB have been verified. PostHog server-side minimal analytics is active with anonymized IPs and no session replay. Latest branch commit is cdcb342d093fc551aa7e235f6ceac571cb0997eb; live Render deploy is 0d1b55c4ff9ff9ab4514a77ee1ff4e5001269cd5.",
+    "next_action": "Astra should re-read current branch/provider state, check whether Sentry is usable through the connected connector, then complete one actual Stripe Sandbox Checkout so a Stripe-generated signed webhook is observed. If successful, update checkpoints and prepare DNS instructions for scopeledger.ustg.tech without changing get.tech DNS automatically.",
     "blockers": [
       "scopeledger.ustg.tech DNS remains unchanged at get.tech.",
       "A provider-generated Stripe webhook has not yet been observed from an actually completed Sandbox Checkout."
