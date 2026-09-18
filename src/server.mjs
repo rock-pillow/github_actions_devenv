@@ -19,6 +19,7 @@ const BACKEND_GATEWAY_SECRET = process.env.BACKEND_GATEWAY_SECRET || "";
 const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${PORT}`;
 const secureCookie = APP_URL.startsWith("https://");
 const root = fileURLToPath(new URL("../public/", import.meta.url));
+const appOrigin = new URL(APP_URL).origin;
 
 if (!BACKEND_URL || !BACKEND_GATEWAY_SECRET) {
   console.error("BACKEND_URL and BACKEND_GATEWAY_SECRET are required");
@@ -41,11 +42,35 @@ async function readJson(req) {
   }
 }
 
+function securityHeaders() {
+  return {
+    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+    "referrer-policy": "no-referrer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+    "cross-origin-opener-policy": "same-origin",
+    "cross-origin-resource-policy": "same-origin",
+    ...(secureCookie ? { "strict-transport-security": "max-age=31536000; includeSubDomains" } : {})
+  };
+}
+
+function assertSameOrigin(req) {
+  const origin = req.headers.origin;
+  if (origin && origin !== appOrigin) {
+    throw Object.assign(new Error("Cross-origin request rejected"), { status: 403 });
+  }
+  const site = req.headers["sec-fetch-site"];
+  if (site && site !== "same-origin" && site !== "none") {
+    throw Object.assign(new Error("Cross-site request rejected"), { status: 403 });
+  }
+}
+
 function sendJson(res, status, data, headers = {}) {
   res.writeHead(status, {
+    ...securityHeaders(),
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
-    "x-content-type-options": "nosniff",
     ...headers
   });
   res.end(JSON.stringify(data));
@@ -53,12 +78,9 @@ function sendJson(res, status, data, headers = {}) {
 
 function sendHtml(res, status, html) {
   res.writeHead(status, {
+    ...securityHeaders(),
     "content-type": "text/html; charset=utf-8",
-    "cache-control": "no-store",
-    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
-    "referrer-policy": "no-referrer",
-    "x-content-type-options": "nosniff",
-    "x-frame-options": "DENY"
+    "cache-control": "no-store"
   });
   res.end(html);
 }
@@ -141,9 +163,9 @@ async function serveStatic(req, res, pathname) {
     const body = await readFile(full);
     const types = { ".html":"text/html; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".css":"text/css; charset=utf-8" };
     res.writeHead(200, {
+      ...securityHeaders(),
       "content-type": types[extname(full)] || "application/octet-stream",
-      "cache-control": extname(full) === ".html" ? "no-store" : "public, max-age=300",
-      "x-content-type-options":"nosniff"
+      "cache-control": extname(full) === ".html" ? "no-store" : "public, max-age=300"
     });
     res.end(body);
     return true;
@@ -157,7 +179,10 @@ const server = createServer(async (req, res) => {
 
     if (pathname === "/health") return sendJson(res, 200, { ok: true });
 
-    if (req.method === "POST" && pathname.startsWith("/api/")) await rate(req);
+    if (req.method === "POST" && pathname.startsWith("/api/")) {
+      assertSameOrigin(req);
+      await rate(req);
+    }
 
     if (req.method === "POST" && pathname === "/api/workspaces") {
       const body = await readJson(req);
