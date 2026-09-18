@@ -39,3 +39,9 @@ Store secrets in deployment-provider environment variables or a dedicated secret
 - Research/specifications/decisions go to Notion or Markdown.
 - Launch/status rows go directly into the existing Google Sheet.
 - Do not create CSV exports unless the product itself requires CSV import/export or the user explicitly requests one.
+
+
+## Business-selection exclusions
+- Do not select CSV processing/conversion, generic file converters, generic PDF/image/text utilities, or "upload-transform-download" tools as the business thesis.
+- CSV/Excel/JSON/PDF import-export may be a feature, not the core product.
+- Prefer recurring domain-specific workflows, operational pain, decision support, or niche automation.
