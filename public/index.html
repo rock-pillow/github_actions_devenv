@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<header class="top"><a class="brand" href="/">ScopeLedger</a><span class="badge">MVP</span></header>
+<header class="top"><a class="brand" href="/">ScopeLedger</a><span class="badge">Preview</span></header>
 <main class="shell">
 <section class="hero">
   <p class="eyebrow">FIXED-FEE WEB PROJECTS</p>
@@ -16,9 +16,11 @@
   <p class="lead">当初スコープ、追加費用、納期影響、クライアント承認を1本の変更依頼として管理。承認されたのに請求し忘れた作業も追えます。</p>
 </section>
 
+<p id="checkout-note" class="notice" hidden>Stripe Sandboxから戻りました。Webhook反映後にPro状態が更新されます。</p>
+
 <section id="setup" class="card">
   <h2>ワークスペースを作成</h2>
-  <p class="muted">まず1案件まで無料で試せます。メール登録なしのMVPです。このブラウザに安全なワークスペースキーを保存します。</p>
+  <p class="muted">まず1案件まで無料で試せます。メール登録なしのPreviewです。このブラウザに安全なワークスペースキーを保存します。</p>
   <form id="workspace-form" class="row">
     <input name="name" maxlength="100" placeholder="例: Suzuki Web Studio" required>
     <button>開始する</button>
@@ -44,6 +46,14 @@
       <p class="muted">承認済みで、まだ「請求済み」にしていない変更の合計。</p>
     </section>
   </div>
+  <section class="card plan-card">
+    <div>
+      <p class="eyebrow">PLAN</p>
+      <h2 id="plan-status">Free</h2>
+      <p class="muted">Freeはアクティブ案件1件まで。Proは10件まで、Stripe Sandboxで月額¥1,980の決済フローを検証できます。</p>
+    </div>
+    <button id="upgrade">ProをSandboxで試す</button>
+  </section>
   <section><div id="projects"></div></section>
 </section>
 

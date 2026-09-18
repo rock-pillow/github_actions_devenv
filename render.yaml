@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     branch: scopeledger
-    buildCommand: npm run build
+    buildCommand: npm ci --ignore-scripts && npm run build
     startCommand: npm start
     healthCheckPath: /health
     autoDeploy: false
@@ -16,4 +16,10 @@ services:
       - key: BACKEND_URL
         sync: false
       - key: BACKEND_GATEWAY_SECRET
+        sync: false
+      - key: STRIPE_PAYMENT_LINK_URL
+        value: "https://buy.stripe.com/test_00waEWbuC3Kednbgm6d3i00"
+      - key: STRIPE_PAYMENT_LINK_ID
+        value: "plink_1UGrirC05qJ95APieR94dXDJ"
+      - key: STRIPE_WEBHOOK_SECRET
         sync: false

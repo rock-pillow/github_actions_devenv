@@ -9,7 +9,7 @@ import {
   hashToken,
   newToken,
   parseCookies,
-  safeJson,
+  verifyStripeSignature,
   yen
 } from "./lib.mjs";
 
@@ -17,6 +17,9 @@ const PORT = Number(process.env.PORT || 3000);
 const BACKEND_URL = process.env.BACKEND_URL || "";
 const BACKEND_GATEWAY_SECRET = process.env.BACKEND_GATEWAY_SECRET || "";
 const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${PORT}`;
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
+const STRIPE_PAYMENT_LINK_URL = process.env.STRIPE_PAYMENT_LINK_URL || "";
+const STRIPE_PAYMENT_LINK_ID = process.env.STRIPE_PAYMENT_LINK_ID || "";
 const secureCookie = APP_URL.startsWith("https://");
 const root = fileURLToPath(new URL("../public/", import.meta.url));
 const appOrigin = new URL(APP_URL).origin;
@@ -26,7 +29,7 @@ if (!BACKEND_URL || !BACKEND_GATEWAY_SECRET) {
   process.exit(1);
 }
 
-async function readJson(req) {
+async function readBody(req) {
   let size = 0;
   const chunks = [];
   for await (const chunk of req) {
@@ -34,9 +37,14 @@ async function readJson(req) {
     if (size > MAX_BODY_BYTES) throw Object.assign(new Error("Request too large"), { status: 413 });
     chunks.push(chunk);
   }
-  if (!chunks.length) return {};
+  return Buffer.concat(chunks);
+}
+
+async function readJson(req) {
+  const raw = await readBody(req);
+  if (!raw.length) return {};
   try {
-    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    return JSON.parse(raw.toString("utf8"));
   } catch {
     throw Object.assign(new Error("Invalid JSON"), { status: 400 });
   }
@@ -85,24 +93,33 @@ function sendHtml(res, status, html) {
   res.end(html);
 }
 
-async function rpc(action, payload, actorHash) {
+async function backend(body) {
   const response = await fetch(BACKEND_URL, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       "x-scopeledger-gateway": BACKEND_GATEWAY_SECRET
     },
-    body: JSON.stringify({ action, payload, actor_hash: actorHash }),
+    body: JSON.stringify(body),
     signal: AbortSignal.timeout(10_000)
   });
+
   const text = await response.text();
   let data;
-  try { data = text ? JSON.parse(text) : null; } catch { data = { error: "Backend returned invalid JSON" }; }
+  try { data = text ? JSON.parse(text) : null; }
+  catch { data = { error: "Backend returned invalid JSON" }; }
+
   if (!response.ok) {
     const message = data?.error || "Backend request failed";
-    throw Object.assign(new Error(message), { status: response.status === 401 ? 401 : response.status >= 500 ? 503 : 400 });
+    throw Object.assign(new Error(message), {
+      status: response.status === 401 ? 401 : response.status >= 500 ? 503 : 400
+    });
   }
   return data;
+}
+
+async function rpc(action, payload, actorHash) {
+  return backend({ operation: "api", action, payload, actor_hash: actorHash });
 }
 
 function workspaceHash(req) {
@@ -115,6 +132,90 @@ async function rate(req) {
   const address = forwarded || req.socket.remoteAddress || "unknown";
   const ok = await rpc("rate", {}, hashToken(`ip:${address}`));
   if (!ok) throw Object.assign(new Error("Too many requests"), { status: 429 });
+}
+
+function scalarId(value) {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && typeof value.id === "string") return value.id;
+  return null;
+}
+
+function invoiceSubscriptionId(invoice) {
+  return scalarId(invoice?.parent?.subscription_details?.subscription) || scalarId(invoice?.subscription);
+}
+
+function invoicePeriodEnd(invoice) {
+  const ends = (invoice?.lines?.data || [])
+    .map(line => Number(line?.period?.end))
+    .filter(Number.isFinite);
+  return ends.length ? new Date(Math.max(...ends) * 1000).toISOString() : null;
+}
+
+async function handleStripeWebhook(req, res) {
+  if (!STRIPE_WEBHOOK_SECRET) return sendJson(res, 503, { error: "Webhook not configured" });
+
+  const raw = await readBody(req);
+  const signature = String(req.headers["stripe-signature"] || "");
+  const payload = raw.toString("utf8");
+
+  if (!verifyStripeSignature(payload, signature, STRIPE_WEBHOOK_SECRET)) {
+    return sendJson(res, 400, { error: "Invalid Stripe signature" });
+  }
+
+  let event;
+  try { event = JSON.parse(payload); }
+  catch { return sendJson(res, 400, { error: "Invalid Stripe event" }); }
+
+  if (event?.livemode !== false) {
+    return sendJson(res, 400, { error: "Live Stripe events are not accepted" });
+  }
+
+  const object = event?.data?.object || {};
+  let outcome = "ignored";
+
+  if (event.type === "checkout.session.completed") {
+    const paymentLinkId = scalarId(object.payment_link);
+    if (STRIPE_PAYMENT_LINK_ID && paymentLinkId !== STRIPE_PAYMENT_LINK_ID) {
+      return sendJson(res, 200, { received: true, outcome });
+    }
+    if (!["paid", "no_payment_required"].includes(String(object.payment_status || ""))) {
+      return sendJson(res, 200, { received: true, outcome });
+    }
+
+    const orderId = String(object.client_reference_id || "");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId)) {
+      return sendJson(res, 200, { received: true, outcome: "missing_reference" });
+    }
+
+    outcome = await backend({
+      operation: "fulfill_subscription",
+      event_id: String(event.id || ""),
+      order_id: orderId,
+      checkout_id: String(object.id || ""),
+      subscription_id: scalarId(object.subscription),
+      customer_id: scalarId(object.customer),
+      period_end: null
+    });
+  } else if (event.type === "invoice.paid") {
+    const subscriptionId = invoiceSubscriptionId(object);
+    if (!subscriptionId) return sendJson(res, 200, { received: true, outcome });
+    outcome = await backend({
+      operation: "renew_subscription",
+      event_id: String(event.id || ""),
+      subscription_id: subscriptionId,
+      period_end: invoicePeriodEnd(object)
+    });
+  } else if (event.type === "customer.subscription.deleted") {
+    const subscriptionId = scalarId(object);
+    if (!subscriptionId) return sendJson(res, 200, { received: true, outcome });
+    outcome = await backend({
+      operation: "cancel_subscription",
+      event_id: String(event.id || ""),
+      subscription_id: subscriptionId
+    });
+  }
+
+  return sendJson(res, 200, { received: true, outcome });
 }
 
 function reviewHtml(token, data) {
@@ -179,6 +280,10 @@ const server = createServer(async (req, res) => {
 
     if (pathname === "/health") return sendJson(res, 200, { ok: true });
 
+    if (req.method === "POST" && pathname === "/api/stripe/webhook") {
+      return handleStripeWebhook(req, res);
+    }
+
     if (req.method === "POST" && pathname.startsWith("/api/")) {
       assertSameOrigin(req);
       await rate(req);
@@ -200,6 +305,16 @@ const server = createServer(async (req, res) => {
       if (!actor) return sendJson(res, 401, { error: "Workspace not selected" });
       const result = await rpc("list", {}, actor);
       return sendJson(res, 200, result);
+    }
+
+    if (req.method === "POST" && pathname === "/api/checkout") {
+      const actor = workspaceHash(req);
+      if (!actor) return sendJson(res, 401, { error: "Workspace not selected" });
+      if (!STRIPE_PAYMENT_LINK_URL) return sendJson(res, 503, { error: "Sandbox Checkout is not configured" });
+      const order = await rpc("order", {}, actor);
+      const checkoutUrl = new URL(STRIPE_PAYMENT_LINK_URL);
+      checkoutUrl.searchParams.set("client_reference_id", String(order.id));
+      return sendJson(res, 200, { url: checkoutUrl.toString(), order_id: order.id, mode: "sandbox" });
     }
 
     if (req.method === "POST" && pathname === "/api/action") {

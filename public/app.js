@@ -38,6 +38,13 @@ function render(data) {
   const unbilled = changes.filter(c => c.status === "confirmed").reduce((a,c)=>a+Number(c.amount||0),0);
   $("#unbilled").textContent = yen(unbilled);
 
+  const paidUntil = data.workspace?.paid_until ? new Date(data.workspace.paid_until) : null;
+  const activePro = paidUntil && paidUntil.getTime() > Date.now();
+  $("#plan-status").textContent = activePro
+    ? `Pro有効 — ${paidUntil.toLocaleDateString("ja-JP")}まで`
+    : "Free — アクティブ案件1件まで";
+  $("#upgrade").hidden = Boolean(activePro);
+
   projectsEl.innerHTML = projects.filter(p=>!p.archived).map(p => {
     const pcs = changes.filter(c=>c.project_id===p.id);
     return `<article class="card project" data-project="${p.id}">
@@ -119,8 +126,19 @@ projectsEl.addEventListener("click", async e => {
   } catch (err) { alert(err.message); }
 });
 
+$("#upgrade").addEventListener("click", async () => {
+  try {
+    const data = await api("/api/checkout",{method:"POST",body:"{}"});
+    location.href = data.url;
+  } catch (err) { alert(err.message); }
+});
+
 $("#logout").addEventListener("click", async () => {
   await api("/api/logout",{method:"POST",body:"{}"}); location.reload();
 });
+
+if (new URLSearchParams(location.search).get("checkout") === "success") {
+  $("#checkout-note").hidden = false;
+}
 
 load();
