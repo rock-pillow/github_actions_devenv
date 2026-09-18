@@ -13,7 +13,7 @@ services:
         value: "24"
       - key: APP_URL
         sync: false
-      - key: SUPABASE_URL
+      - key: BACKEND_URL
         sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
+      - key: BACKEND_GATEWAY_SECRET
         sync: false
