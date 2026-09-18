@@ -32,3 +32,10 @@ The Astra Control Plane is the durable registry for shared infrastructure and pr
 
 ## Secrets
 Store secrets in deployment-provider environment variables or a dedicated secret store. Never put them in Git, Notion, Drive, Figma, issues, logs, or analytics.
+
+
+## Artifact policy
+- CSV is not a default working format.
+- Research/specifications/decisions go to Notion or Markdown.
+- Launch/status rows go directly into the existing Google Sheet.
+- Do not create CSV exports unless the product itself requires CSV import/export or the user explicitly requests one.
