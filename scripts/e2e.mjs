@@ -76,38 +76,97 @@ const change = await json("/api/action", {
     },
   },
 });
-if (!change.data?.id || change.data.status !== "draft") throw new Error("change creation failed");
+if (!change.data?.id || change.data.status !== "draft" || change.data.version !== 1) {
+  throw new Error("change creation failed");
+}
 
-const shared = await json("/api/action", {
+const sharedV1 = await json("/api/action", {
   method: "POST",
   cookie: sessionCookie,
   body: { action: "share", payload: { id: change.data.id } },
 });
-if (!shared.data?.review_url) throw new Error("review URL missing");
+if (!sharedV1.data?.review_url) throw new Error("v1 review URL missing");
 
-const reviewUrl = new URL(shared.data.review_url);
-const reviewToken = decodeURIComponent(reviewUrl.pathname.split("/").pop() || "");
-if (!reviewToken) throw new Error("review token missing");
+const reviewUrlV1 = new URL(sharedV1.data.review_url);
+const reviewTokenV1 = decodeURIComponent(reviewUrlV1.pathname.split("/").pop() || "");
+if (!reviewTokenV1) throw new Error("v1 review token missing");
 
-const review = await fetch(shared.data.review_url, { signal: AbortSignal.timeout(20_000) });
-const reviewHtml = await review.text();
-if (!review.ok || !reviewHtml.includes("追加ページ")) throw new Error("review page failed");
+const reviewV1 = await fetch(sharedV1.data.review_url, { signal: AbortSignal.timeout(20_000) });
+const reviewHtmlV1 = await reviewV1.text();
+if (!reviewV1.ok || !reviewHtmlV1.includes("追加ページ")) throw new Error("v1 review page failed");
+
+const requested = await json("/api/decision", {
+  method: "POST",
+  body: {
+    token: reviewTokenV1,
+    version: 1,
+    decision: "changes_requested",
+    name: "E2E Reviewer",
+    comment: "説明を追加してください",
+  },
+});
+if (requested.data?.change?.status !== "changes_requested") throw new Error("change request decision failed");
+
+const revised = await json("/api/action", {
+  method: "POST",
+  cookie: sessionCookie,
+  body: {
+    action: "revise",
+    payload: {
+      id: change.data.id,
+      title: "追加ページ（改訂）",
+      description: "会社概要ページを1ページ追加。原稿整理を含む。",
+      amount: 24000,
+      days: 3,
+    },
+  },
+});
+if (revised.data?.status !== "draft" || revised.data?.version !== 2) {
+  throw new Error("revision did not create v2 draft");
+}
+
+const staleReview = await fetch(sharedV1.data.review_url, {
+  redirect: "manual",
+  signal: AbortSignal.timeout(20_000),
+});
+if (staleReview.ok) throw new Error("v1 review URL remained valid after revision");
+
+const sharedV2 = await json("/api/action", {
+  method: "POST",
+  cookie: sessionCookie,
+  body: { action: "share", payload: { id: change.data.id } },
+});
+if (!sharedV2.data?.review_url || sharedV2.data.review_url === sharedV1.data.review_url) {
+  throw new Error("v2 review URL was not rotated");
+}
+
+const reviewUrlV2 = new URL(sharedV2.data.review_url);
+const reviewTokenV2 = decodeURIComponent(reviewUrlV2.pathname.split("/").pop() || "");
+const reviewV2 = await fetch(sharedV2.data.review_url, { signal: AbortSignal.timeout(20_000) });
+const reviewHtmlV2 = await reviewV2.text();
+if (!reviewV2.ok || !reviewHtmlV2.includes("追加ページ（改訂）") || !reviewHtmlV2.includes("v2")) {
+  throw new Error("v2 review page failed");
+}
 
 const decision = await json("/api/decision", {
   method: "POST",
   body: {
-    token: reviewToken,
-    version: 1,
+    token: reviewTokenV2,
+    version: 2,
     decision: "confirmed",
     name: "E2E Reviewer",
-    comment: "承認します",
+    comment: "改訂内容を承認します",
   },
 });
-if (decision.data?.change?.status !== "confirmed") throw new Error("decision failed");
+if (decision.data?.change?.status !== "confirmed" || decision.data?.change?.version !== 2) {
+  throw new Error("v2 confirmation failed");
+}
 
 const state = await json("/api/state", { cookie: sessionCookie });
 const confirmed = state.data?.changes?.find((item) => item.id === change.data.id);
-if (confirmed?.status !== "confirmed") throw new Error("confirmed state not persisted");
+if (confirmed?.status !== "confirmed" || confirmed?.version !== 2 || Number(confirmed?.amount) !== 24000) {
+  throw new Error("confirmed v2 state not persisted");
+}
 
 await json("/api/action", {
   method: "POST",
@@ -120,10 +179,11 @@ const history = await json("/api/action", {
   cookie: sessionCookie,
   body: { action: "history", payload: { id: change.data.id } },
 });
-const kinds = new Set((history.data || []).map((row) => row.kind));
-for (const expected of ["create_change", "shared", "confirmed", "invoiced"]) {
-  if (!kinds.has(expected)) throw new Error(`history missing ${expected}`);
+const kinds = (history.data || []).map(row => row.kind);
+for (const expected of ["create_change", "changes_requested", "revise", "confirmed", "invoiced"]) {
+  if (!kinds.includes(expected)) throw new Error(`history missing ${expected}`);
 }
+if (kinds.filter(kind => kind === "shared").length < 2) throw new Error("history missing two share events");
 
 await json("/api/action", {
   method: "POST",
@@ -137,5 +197,6 @@ console.log(JSON.stringify({
   project: project.data.id,
   change: change.data.id,
   checkout_order: checkout.data.order_id,
-  history: [...kinds],
+  final_version: 2,
+  history: kinds,
 }));

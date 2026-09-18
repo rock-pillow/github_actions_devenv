@@ -48,7 +48,10 @@ function render(data) {
   projectsEl.innerHTML = projects.filter(p=>!p.archived).map(p => {
     const pcs = changes.filter(c=>c.project_id===p.id);
     return `<article class="card project" data-project="${p.id}">
-      <div class="project-head"><div><p class="eyebrow">${esc(p.client)}</p><h2>${esc(p.name)}</h2></div><span>${yen(p.budget)}</span></div>
+      <div class="project-head">
+        <div><p class="eyebrow">${esc(p.client)}</p><h2>${esc(p.name)}</h2></div>
+        <div class="project-meta"><span>${yen(p.budget)}</span><button class="ghost small" data-project-action="archive" data-project-id="${p.id}">案件をアーカイブ</button></div>
+      </div>
       <details><summary>当初スコープ</summary><p class="pre">${esc(p.baseline)}</p></details>
       <div class="changes">${pcs.length ? pcs.map(changeCard).join("") : '<p class="muted">変更依頼はまだありません。</p>'}</div>
       <form class="change-form stack">
@@ -65,14 +68,33 @@ function render(data) {
 
 function changeCard(c) {
   const actions = [];
-  if (c.status === "draft" || c.status === "pending") actions.push(`<button data-action="share" data-id="${c.id}" class="secondary">承認URLを発行</button>`);
+  if (c.status === "draft") actions.push(`<button data-action="share" data-id="${c.id}" class="secondary">承認URLを発行</button>`);
+  if (c.status === "pending") actions.push(`<button data-action="share" data-id="${c.id}" class="secondary">承認URLを再発行</button>`);
   if (c.status === "confirmed") actions.push(`<button data-action="invoice" data-id="${c.id}">請求済みにする</button>`);
   actions.push(`<button data-action="history" data-id="${c.id}" class="ghost">履歴</button>`);
+
+  const revise = c.status === "changes_requested"
+    ? `<details class="revise">
+        <summary>修正内容を反映して v${Number(c.version)+1} を作る</summary>
+        <form class="revise-form stack">
+          <input type="hidden" name="id" value="${c.id}">
+          <label>タイトル<input name="title" maxlength="120" value="${esc(c.title)}" required></label>
+          <label>内容<textarea name="description" maxlength="4000" required>${esc(c.description)}</textarea></label>
+          <div class="row">
+            <label>追加費用（円）<input name="amount" type="number" min="0" value="${Number(c.amount)}" required></label>
+            <label>納期影響（日）<input name="days" type="number" min="0" max="365" value="${Number(c.days)}" required></label>
+          </div>
+          <button>改訂版を保存</button>
+        </form>
+      </details>`
+    : "";
+
   return `<div class="change">
     <div><strong>${esc(c.title)}</strong><span class="status ${c.status}">${statusLabel(c.status)}</span></div>
     <p class="muted">${yen(c.amount)} / +${Number(c.days)}日 / v${c.version}</p>
     <p class="pre clamp">${esc(c.description)}</p>
     <div class="actions">${actions.join("")}</div>
+    ${revise}
   </div>`;
 }
 
@@ -97,27 +119,51 @@ $("#project-form").addEventListener("submit", async e => {
 });
 
 projectsEl.addEventListener("submit", async e => {
-  if (!e.target.matches(".change-form")) return;
+  if (!e.target.matches(".change-form,.revise-form")) return;
   e.preventDefault();
   const fd = new FormData(e.target);
   try {
-    await api("/api/action",{method:"POST",body:JSON.stringify({action:"create_change",payload:{
-      project_id:fd.get("project_id"),title:fd.get("title"),description:fd.get("description"),
-      amount:Number(fd.get("amount")),days:Number(fd.get("days"))
-    }})});
+    if (e.target.matches(".change-form")) {
+      await api("/api/action",{method:"POST",body:JSON.stringify({action:"create_change",payload:{
+        project_id:fd.get("project_id"),title:fd.get("title"),description:fd.get("description"),
+        amount:Number(fd.get("amount")),days:Number(fd.get("days"))
+      }})});
+    } else {
+      await api("/api/action",{method:"POST",body:JSON.stringify({action:"revise",payload:{
+        id:fd.get("id"),title:fd.get("title"),description:fd.get("description"),
+        amount:Number(fd.get("amount")),days:Number(fd.get("days"))
+      }})});
+    }
     await load();
   } catch (err) { alert(err.message); }
 });
 
 projectsEl.addEventListener("click", async e => {
+  const projectButton = e.target.closest("button[data-project-action]");
+  if (projectButton) {
+    if (!confirm("この案件をアーカイブしますか？変更履歴は削除されません。")) return;
+    try {
+      await api("/api/action",{method:"POST",body:JSON.stringify({
+        action:"archive_project",
+        payload:{project_id:projectButton.dataset.projectId}
+      })});
+      await load();
+    } catch (err) { alert(err.message); }
+    return;
+  }
+
   const b = e.target.closest("button[data-action]");
   if (!b) return;
   try {
     const action = b.dataset.action;
     const data = await api("/api/action",{method:"POST",body:JSON.stringify({action,payload:{id:b.dataset.id}})});
     if (action === "share") {
-      await navigator.clipboard.writeText(data.review_url);
-      alert("承認URLをコピーしました。");
+      try {
+        await navigator.clipboard.writeText(data.review_url);
+        alert("承認URLをコピーしました。");
+      } catch {
+        prompt("この承認URLをコピーしてください", data.review_url);
+      }
     } else if (action === "history") {
       alert((data || []).map(x=>`#${x.id} ${x.kind} v${x.version} — ${new Date(x.created_at).toLocaleString("ja-JP")}`).join("\n") || "履歴はありません");
     } else {
