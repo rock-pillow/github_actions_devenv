@@ -97,26 +97,28 @@
   },
   "last_checkpoint": {
     "source": "chat",
-    "summary": "Recovered ScopeLedger after Astra quota. Runtime 81c0de9 remains correct; later HEAD changes are documentation/control-plane only. Shifted work to customer validation. Created Notion Monetization Experiment 01, a Pilot Prospects database, five qualified public Lancers service examples, and Outreach Kit 01. No outreach was sent.",
-    "next_action": "Expand to about 20 qualified public prospects across public business channels, resolve actual public contact surfaces, then request user authorization before sending individualized outreach. Primary activation remains change request shared; WTP target is JPY 1,980/month.",
+    "summary": "Recovered ScopeLedger after Astra quota. Runtime 81c0de9 remains correct; later branch changes are documentation/control-plane only. Customer-validation infrastructure is ready: Monetization Experiment 01, Pilot Prospects database, Outreach Kit 01, and 20 qualified public prospect examples (16 Strong, 4 Medium). No outreach was sent.",
+    "next_action": "Before any outreach, resolve the top Strong-fit entries to their current public business/contact surfaces and verify platform contact rules. Then request user authorization for individualized pilot outreach. Primary activation=change request shared; WTP target=JPY 1,980/month.",
     "blockers": [
       "Outreach sending is not authorized yet; research and drafting only.",
       "Stripe Live remains OFF and DNS remains unchanged.",
       "Sentry tool surface remains unavailable; PostHog product/error monitoring is active."
-    ],
-    "monetization": {
-      "experiment_page": "https://app.notion.com/p/3df06480d5548101b1d8c5170d96872d?pvs=204",
-      "prospects_database": "https://app.notion.com/p/939a8361040d44e0b69bf1c25e5b7232",
-      "outreach_kit": "https://app.notion.com/p/3df06480d554814cbbc5f2069faa49ee?pvs=204",
-      "qualified_public_examples": 5,
-      "outreach_sent": 0,
-      "pilot_goal": {
-        "trial_users": 5,
-        "real_project_users": 3,
-        "review_link_senders": 2,
-        "wtp_confirmed_users": 1,
-        "target_wtp_jpy": 1980
-      }
+    ]
+  },
+  "monetization": {
+    "experiment_page": "https://app.notion.com/p/3df06480d5548101b1d8c5170d96872d?pvs=204",
+    "prospects_database": "https://app.notion.com/p/939a8361040d44e0b69bf1c25e5b7232",
+    "outreach_kit": "https://app.notion.com/p/3df06480d554814cbbc5f2069faa49ee?pvs=204",
+    "qualified_public_examples": 20,
+    "strong_fit": 16,
+    "medium_fit": 4,
+    "outreach_sent": 0,
+    "pilot_goal": {
+      "trial_users": 5,
+      "real_project_users": 3,
+      "review_link_senders": 2,
+      "wtp_confirmed_users": 1,
+      "target_wtp_jpy": 1980
     }
   }
 }
