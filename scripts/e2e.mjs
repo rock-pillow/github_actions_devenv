@@ -36,6 +36,17 @@ const setCookie = workspace.response.headers.get("set-cookie") || "";
 const sessionCookie = setCookie.split(";")[0];
 if (!sessionCookie.startsWith("sl_workspace=")) throw new Error("workspace cookie missing");
 
+const checkout = await json("/api/checkout", {
+  method: "POST",
+  cookie: sessionCookie,
+  body: {},
+});
+const checkoutUrl = new URL(checkout.data?.url || "");
+if (checkoutUrl.hostname !== "buy.stripe.com") throw new Error("Sandbox Checkout host mismatch");
+if (checkoutUrl.searchParams.get("client_reference_id") !== checkout.data?.order_id) {
+  throw new Error("Checkout client_reference_id mismatch");
+}
+
 const project = await json("/api/action", {
   method: "POST",
   cookie: sessionCookie,
@@ -125,5 +136,6 @@ console.log(JSON.stringify({
   workspace: workspace.data?.id,
   project: project.data.id,
   change: change.data.id,
+  checkout_order: checkout.data.order_id,
   history: [...kinds],
 }));
